@@ -68,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
         notifyBuilder.setSmallIcon(R.drawable.ic_android);
         notifyBuilder.setContentIntent(notificationPendingIntent);
         notifyBuilder.setAutoCancel(true);                            // it will close the notification when user clicks on it
+        notifyBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);      // also applicable for devices running on android version 7.1 or lower
+        notifyBuilder.setDefaults(NotificationCompat.DEFAULT_ALL);         // for light, sound and vibration use the default settings
         return notifyBuilder;
     }
 
