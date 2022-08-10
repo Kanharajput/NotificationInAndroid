@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void cancelNotification(View view) {
+        // pass the notification id to cancel it
+        mnotifyManager.cancel(NOTIFICATION_ID);
     }
 
     public void updateNotification(View view) {
