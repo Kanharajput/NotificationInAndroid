@@ -5,6 +5,7 @@ import androidx.core.app.NotificationCompat;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
@@ -52,11 +53,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private NotificationCompat.Builder getNotificationBuilder() {
+        // launch MainActivity when click on notification
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        // PendingIntent tell needed app to work via our code at some point in future
+        PendingIntent notificationPendingIntent = PendingIntent.getActivity(this,
+                                                                    NOTIFICATION_ID,
+                                                                    notificationIntent,
+                                                                    PendingIntent.FLAG_IMMUTABLE);
+
         // creating notifyBuilder to build up notification for a particular channel and activity
         NotificationCompat.Builder notifyBuilder = new NotificationCompat.Builder(this,PRIMARY_CHANNEL_ID);
         notifyBuilder.setContentTitle("Notification reached to you");
         notifyBuilder.setContentText("this is the notification text");
         notifyBuilder.setSmallIcon(R.drawable.ic_android);
+        notifyBuilder.setContentIntent(notificationPendingIntent);
+        notifyBuilder.setAutoCancel(true);                            // it will close the notification when user clicks on it
         return notifyBuilder;
     }
 
