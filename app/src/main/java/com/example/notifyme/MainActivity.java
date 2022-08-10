@@ -17,6 +17,12 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+
+    // Create objects for all three buttons
+    private Button notifyButton;
+    private Button updateButton;
+    private Button cancelButton;
+
     // notification channel Id
     private final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private NotificationManager mnotifyManager;                // it will the notification in android system
@@ -27,8 +33,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // reference all the buttons
+        notifyButton = findViewById(R.id.notify);
+        updateButton = findViewById(R.id.update);
+        cancelButton = findViewById(R.id.cancel);
+
         // call createNotificationChannel method if not than the app will crash
         createNotificationChannel();
+        // when no notification is send then only notify button is enabled,
+        changeStateOfButtons(true,false,false);
     }
 
     public void createNotificationChannel() {
@@ -74,13 +88,19 @@ public class MainActivity extends AppCompatActivity {
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();             // call the method to build a new notification
         // pass id to attach that id with notification that we created using NotificatonCompat.Builder
         mnotifyManager.notify(NOTIFICATION_ID,notifyBuilder.build());
+        // when notification is send then it's button should be disabled.
+        changeStateOfButtons(false,true,true);
     }
 
+    // use to cancel the notification
     public void cancelNotification(View view) {
         // pass the notification id to cancel it
         mnotifyManager.cancel(NOTIFICATION_ID);
+        // when notification is canceled then it's button and update button should be disabled.
+        changeStateOfButtons(true,false,false);
     }
 
+    // use to update the notification
     public void updateNotification(View view) {
         // convert the drawable into Bitmap
         Bitmap imgForNotification = BitmapFactory.decodeResource(getResources(),
@@ -92,5 +112,14 @@ public class MainActivity extends AppCompatActivity {
                                                            .bigPicture(imgForNotification)
                                                            .setBigContentTitle("notification updated"));
         mnotifyManager.notify(NOTIFICATION_ID,notificationBuilder.build());
+        // when notification is updated then it's button and notify button should be disabled.
+        changeStateOfButtons(false,false,true);
+    }
+
+    // utility method to handle the state of buttons
+    private void changeStateOfButtons(Boolean isNotifyEnable, Boolean isUpdateEnable, Boolean isCancelEnable) {
+        notifyButton.setEnabled(isNotifyEnable);          // setEnable will change the state of button
+        updateButton.setEnabled(isUpdateEnable);
+        cancelButton.setEnabled(isCancelEnable);
     }
 }
