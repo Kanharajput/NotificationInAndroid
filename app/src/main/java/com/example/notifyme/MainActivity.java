@@ -7,7 +7,10 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -29,6 +32,12 @@ public class MainActivity extends AppCompatActivity {
     // notification id to manipulate the notification
     private final int NOTIFICATION_ID = 0;
 
+    // unique string to pass as a action in Broadcast
+    private static final String ACTION_NOTIFICATION_UPDATE = BuildConfig.APPLICATION_ID + "ACTION_UPDATE_NOTIFICATION";
+
+    // initialise the NotificationReceiver class
+    NotificationReceiver notificationReceiver = new NotificationReceiver();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,10 +48,29 @@ public class MainActivity extends AppCompatActivity {
         updateButton = findViewById(R.id.update);
         cancelButton = findViewById(R.id.cancel);
 
+        // doing not directly(example passing a onlick method name in xml)
+        // because we need it to call without passing a view parameter
+        // so doing this will save the code
+        updateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateNotification();
+            }
+        });
         // call createNotificationChannel method if not than the app will crash
         createNotificationChannel();
+
         // when no notification is send then only notify button is enabled,
         changeStateOfButtons(true,false,false);
+
+        // register intent filter to receive only that
+        registerReceiver(notificationReceiver,new IntentFilter(ACTION_NOTIFICATION_UPDATE));
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(notificationReceiver);        // unregister the receiver to protect from data leaks
+        super.onDestroy();
     }
 
     public void createNotificationChannel() {
@@ -66,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private NotificationCompat.Builder getNotificationBuilder() {
         // launch MainActivity when click on notification
         Intent notificationIntent = new Intent(this, MainActivity.class);
-        // PendingIntent tell needed app to work via our code at some point in future
+        // launch mainActivity when click over the notification
         PendingIntent notificationPendingIntent = PendingIntent.getActivity(this,
                                                                     NOTIFICATION_ID,
                                                                     notificationIntent,
@@ -85,12 +113,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendNotification(View view) {
-        NotificationCompat.Builder notifyBuilder = getNotificationBuilder();             // call the method to build a new notification
-        // pass id to attach that id with notification that we created using NotificatonCompat.Builder
+        // intent to use in update button from the notification
+        Intent updateIntent = new Intent(ACTION_NOTIFICATION_UPDATE);
+        // it is like an implicit Intent but it's for notification buttons when on defined button it will work
+        PendingIntent updatePendingIntent = PendingIntent.getBroadcast(this,NOTIFICATION_ID,updateIntent,PendingIntent.FLAG_IMMUTABLE);
+
+        // call the method to build a new notification
+        NotificationCompat.Builder notifyBuilder = getNotificationBuilder();
+        // icon is only shown in android version below <=7.1,  update_action is the title of button
+        // and updatePendingIntent add functions to that button.
+        // like all buttons there is listener so for that button in notification who is the listener
+        // that is BroaccastReceiver subclass is for that and we register that in the oncreate method of MainActivity
+        notifyBuilder.addAction(R.drawable.update_icon,"update_action",updatePendingIntent);
+        // pass id to attach that id with notification that we created using NotificationCompat.Builder
         mnotifyManager.notify(NOTIFICATION_ID,notifyBuilder.build());
+
         // when notification is send then it's button should be disabled.
         changeStateOfButtons(false,true,true);
-    }
+}
 
     // use to cancel the notification
     public void cancelNotification(View view) {
@@ -101,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // use to update the notification
-    public void updateNotification(View view) {
+    private void updateNotification() {
         // convert the drawable into Bitmap
         Bitmap imgForNotification = BitmapFactory.decodeResource(getResources(),
                                                                     R.drawable.mascot_1);
@@ -121,5 +161,14 @@ public class MainActivity extends AppCompatActivity {
         notifyButton.setEnabled(isNotifyEnable);          // setEnable will change the state of button
         updateButton.setEnabled(isUpdateEnable);
         cancelButton.setEnabled(isCancelEnable);
+    }
+
+    // this is only register for MainActivity
+    // inner class to receive broacast when user clicks a update button which is embedded in Notification
+    public class NotificationReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateNotification();                        // now we directly update the notification from the notification without opening the app
+        }
     }
 }
