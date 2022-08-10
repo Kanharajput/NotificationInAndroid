@@ -14,9 +14,6 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-
-    // reference for the notify button
-    private Button button_notify;
     // notification channel Id
     private final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private NotificationManager mnotifyManager;                // it will the notification in android system
@@ -27,9 +24,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        button_notify = findViewById(R.id.notify);             // reference for the notify button
-
         // call createNotificationChannel method if not than the app will crash
         createNotificationChannel();
     }
@@ -76,5 +70,11 @@ public class MainActivity extends AppCompatActivity {
     public void sendNotification(View view) {
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();             // call the method to build a new notification
         mnotifyManager.notify(NOTIFICATION_ID,notifyBuilder.build());
+    }
+
+    public void cancelNotification(View view) {
+    }
+
+    public void updateNotification(View view) {
     }
 }
