@@ -3,10 +3,13 @@ package com.example.notifyme;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -69,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void sendNotification(View view) {
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();             // call the method to build a new notification
+        // pass id to attach that id with notification that we created using NotificatonCompat.Builder
         mnotifyManager.notify(NOTIFICATION_ID,notifyBuilder.build());
     }
 
@@ -78,5 +82,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateNotification(View view) {
+        // convert the drawable into Bitmap
+        Bitmap imgForNotification = BitmapFactory.decodeResource(getResources(),
+                                                                    R.drawable.mascot_1);
+        // get the object of NotificationCompat.Builder
+        NotificationCompat.Builder notificationBuilder = getNotificationBuilder();
+        // update notification builder style
+        notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle()
+                                                           .bigPicture(imgForNotification)
+                                                           .setBigContentTitle("notification updated"));
+        mnotifyManager.notify(NOTIFICATION_ID,notificationBuilder.build());
     }
 }
