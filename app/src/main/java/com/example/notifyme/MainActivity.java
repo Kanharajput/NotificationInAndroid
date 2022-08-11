@@ -189,11 +189,29 @@ public class MainActivity extends AppCompatActivity {
         changeStateOfButtons(false,false,true);
     }
 
+    // update message to inbox Style like the notification send my mail
+    // if too many mails then group them in one notification
+
+
+
     // utility method to handle the state of buttons
     private void changeStateOfButtons(Boolean isNotifyEnable, Boolean isUpdateEnable, Boolean isCancelEnable) {
         notifyButton.setEnabled(isNotifyEnable);          // setEnable will change the state of button
         updateButton.setEnabled(isUpdateEnable);
         cancelButton.setEnabled(isCancelEnable);
+    }
+
+    // change the style of notification to inbox style
+    public void restyleToInbox(View view) {
+        // get the basic notification
+        NotificationCompat.Builder notificationBuilder = getNotificationBuilder();
+        // creating inbox style notification
+        notificationBuilder.setStyle(new NotificationCompat.InboxStyle()
+                                                            .addLine("1st line")
+                                                            .addLine("2nd line")
+                                                            .addLine("3rd line")
+                                                            .setSummaryText("messages"));
+        mnotifyManager.notify(NOTIFICATION_ID,notificationBuilder.build());
     }
 
     // this is only register for MainActivity
