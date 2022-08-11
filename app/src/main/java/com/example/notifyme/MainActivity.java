@@ -34,9 +34,14 @@ public class MainActivity extends AppCompatActivity {
 
     // unique string to pass as a action in Broadcast
     private static final String ACTION_NOTIFICATION_UPDATE = BuildConfig.APPLICATION_ID + "ACTION_UPDATE_NOTIFICATION";
+    // unique string to passs as an actin for the Intent which is use to reply
+    // the activity that notification is cancelled by the user
+    private static final String ACTION_NOTIFICATION_CANCEL_BY_USER = BuildConfig.APPLICATION_ID + "ACTION_NOTIFICATION_CANCELLED";
 
     // initialise the NotificationReceiver class
     NotificationReceiver notificationReceiver = new NotificationReceiver();
+    // initialise the NotificationReceiver class
+    CancelNotificationReceiver cancelNotificationReceiver = new CancelNotificationReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +62,21 @@ public class MainActivity extends AppCompatActivity {
                 updateNotification();
             }
         });
+
+        notifyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendNotification();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cancelNotification();
+            }
+        });
+
         // call createNotificationChannel method if not than the app will crash
         createNotificationChannel();
 
@@ -65,11 +85,14 @@ public class MainActivity extends AppCompatActivity {
 
         // register intent filter to receive only that
         registerReceiver(notificationReceiver,new IntentFilter(ACTION_NOTIFICATION_UPDATE));
+        // register the intent filter to receiver cancel notification when user do it manually
+        registerReceiver(cancelNotificationReceiver,new IntentFilter(ACTION_NOTIFICATION_CANCEL_BY_USER));
     }
 
     @Override
     protected void onDestroy() {
         unregisterReceiver(notificationReceiver);        // unregister the receiver to protect from data leaks
+        unregisterReceiver(cancelNotificationReceiver);
         super.onDestroy();
     }
 
@@ -109,15 +132,25 @@ public class MainActivity extends AppCompatActivity {
         notifyBuilder.setAutoCancel(true);                            // it will close the notification when user clicks on it
         notifyBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);      // also applicable for devices running on android version 7.1 or lower
         notifyBuilder.setDefaults(NotificationCompat.DEFAULT_ALL);         // for light, sound and vibration use the default settings
+
+        // set intent and pending intent to receive that user cancel the notification manually
+        Intent userCancleNotification = new Intent(ACTION_NOTIFICATION_CANCEL_BY_USER);
+        PendingIntent cancelPendingIntent = PendingIntent.getBroadcast(this,
+                                                                              NOTIFICATION_ID,
+                                                                              userCancleNotification,
+                                                                              PendingIntent.FLAG_IMMUTABLE);
+
+        // this intent is send when user clear all notification or click x in notification
+        notifyBuilder.setDeleteIntent(cancelPendingIntent);
         return notifyBuilder;
     }
 
-    public void sendNotification(View view) {
+    // send notification when click on notify button
+    private void sendNotification() {
         // intent to use in update button from the notification
         Intent updateIntent = new Intent(ACTION_NOTIFICATION_UPDATE);
         // it is like an implicit Intent but it's for notification buttons when on defined button it will work
         PendingIntent updatePendingIntent = PendingIntent.getBroadcast(this,NOTIFICATION_ID,updateIntent,PendingIntent.FLAG_IMMUTABLE);
-
         // call the method to build a new notification
         NotificationCompat.Builder notifyBuilder = getNotificationBuilder();
         // icon is only shown in android version below <=7.1,  update_action is the title of button
@@ -130,10 +163,10 @@ public class MainActivity extends AppCompatActivity {
 
         // when notification is send then it's button should be disabled.
         changeStateOfButtons(false,true,true);
-}
+    }
 
     // use to cancel the notification
-    public void cancelNotification(View view) {
+    private void cancelNotification() {
         // pass the notification id to cancel it
         mnotifyManager.cancel(NOTIFICATION_ID);
         // when notification is canceled then it's button and update button should be disabled.
@@ -169,6 +202,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             updateNotification();                        // now we directly update the notification from the notification without opening the app
+        }
+    }
+
+    // change the state of buttons as user cancel the notification manually
+    // and the state of button is not changed yet
+    public class CancelNotificationReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // enable notify button only
+            changeStateOfButtons(true,false,false);
         }
     }
 }
